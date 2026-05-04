@@ -4,7 +4,7 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Feature 01: Design System — complete
+- Feature 02: Editor Chrome — complete
 
 ## Current Goal
 
@@ -13,10 +13,11 @@ Update this file whenever the current phase, active feature, or implementation s
 ## Completed
 
 - 01-design-system: shadcn/ui initialized (Tailwind v4); Button, Card, Dialog, Input, Tabs, Textarea, ScrollArea installed to `components/ui/`; `lib/utils.ts` cn() helper in place; `globals.css` defines full dark theme tokens (project CSS vars + shadcn semantic vars, no light mode).
+- 02-editor: `components/editor/editor-navbar.tsx` — fixed-height navbar with `isSidebarOpen`/`onToggleSidebar` props, PanelLeftOpen/Close icon swap, dark bg with bottom border. `components/editor/project-sidebar.tsx` — fixed overlay, slides from left, Projects header + close button, My Projects / Shared tabs (empty placeholder states), full-width New Project button. Dialog pattern ready via existing `components/ui/dialog.tsx` + globals.css tokens.
 
 ## In Progress
 
-- None yet.
+- None.
 
 ## Next Up
 
