@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Feature 03: Auth — complete
+- Feature 04: Project Dialogs & Editor Home
 
 ## Current Goal
 
-- Define the immediate implementation goal here.
+- Build the `/editor` home screen and add project dialogs/sidebar actions (Feature 04).
 
 ## Completed
 
@@ -18,11 +18,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## In Progress
 
-- None.
+- 04-project-dialogs: Build the `/editor` home screen and add project dialogs/sidebar actions.
 
 ## Next Up
 
-- Add the next planned feature unit here.
+- None.
 
 ## Open Questions
 
