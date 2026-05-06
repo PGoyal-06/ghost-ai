@@ -1,23 +1,25 @@
 "use client"
 
 import { Plus, X, Pencil, Trash2 } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { useProjectDialogs, Project } from "./project-dialogs-context"
+import { useProjectDialogs, type Project } from "./project-dialogs-context"
 
 interface ProjectSidebarProps {
   isOpen: boolean
   onClose: () => void
 }
 
-
-
 export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
-  const { openDialog, projects } = useProjectDialogs()
+  const router = useRouter()
+  const { openDialog, ownedProjects, sharedProjects } = useProjectDialogs()
 
-  const myProjects = projects.filter((p) => p.isOwned)
-  const sharedProjects = projects.filter((p) => !p.isOwned)
+  const navigateTo = (project: Project) => {
+    router.push(`/editor/${project.id}`)
+    onClose()
+  }
 
   return (
     <>
@@ -57,14 +59,15 @@ export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
             >
               <ScrollArea className="flex-1">
                 <div className="p-2 space-y-1">
-                  {myProjects.length === 0 ? (
+                  {ownedProjects.length === 0 ? (
                     <div className="flex h-32 items-center justify-center">
                       <p className="text-copy-muted text-sm">No projects yet.</p>
                     </div>
                   ) : (
-                    myProjects.map((project) => (
+                    ownedProjects.map((project) => (
                       <div
                         key={project.id}
+                        onClick={() => navigateTo(project)}
                         className="group flex items-center justify-between px-2 py-2 rounded-md hover:bg-surface-elevated cursor-pointer"
                       >
                         <span className="text-sm text-copy-primary truncate pr-2">
@@ -114,6 +117,7 @@ export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
                     sharedProjects.map((project) => (
                       <div
                         key={project.id}
+                        onClick={() => navigateTo(project)}
                         className="group flex items-center justify-between px-2 py-2 rounded-md hover:bg-surface-elevated cursor-pointer"
                       >
                         <span className="text-sm text-copy-primary truncate">

@@ -4,11 +4,11 @@ Update this file whenever the current phase, active feature, or implementation s
 
 ## Current Phase
 
-- Feature 05: Prisma Schema And Data Layer
+- Feature 07: Wire Editor Home
 
 ## Current Goal
 
-- Add the project data models, Prisma client singleton, and first migration (Feature 05).
+- Wire the editor sidebar and dialogs to real project data and API.
 
 ## Completed
 
@@ -18,9 +18,15 @@ Update this file whenever the current phase, active feature, or implementation s
 
 - 04-project-dialogs: Build the `/editor` home screen and add project dialogs/sidebar actions.
 
+- 05-prisma: `prisma/models/project.prisma` — `Project` and `ProjectCollaborator` models with indexes and cascade delete. `lib/prisma.ts` — cached singleton branching on Accelerate vs. direct PG adapter. Migration applied.
+
+- 06-project-apis: `app/api/projects/route.ts` — `GET` (list owner's projects) and `POST` (create, default name "Untitled Project"). `app/api/projects/[projectId]/route.ts` — `PATCH` (rename, owner-only) and `DELETE` (owner-only). 401 for unauthenticated, 403 for non-owner mutations. Build passes.
+
+- 07-wire-editor-home: `lib/projects.ts` — `getProjects()` fetches owned + shared projects server-side via `currentUser()` + Prisma. `hooks/use-project-actions.ts` — `create` (POST → router.push to new workspace), `rename` (PATCH → refresh), `remove` (DELETE → redirect if active, otherwise refresh). `app/editor/layout.tsx` — async server component, fetches projects and passes to `EditorShell`. Context refactored: removes mock data, accepts `ownedProjects`/`sharedProjects` props from layout. Dialogs wired to real API with room ID preview in create dialog. Sidebar navigates to `/editor/[id]` on project click. Build passes.
+
 ## In Progress
 
-- 05-prisma: Add the project data models, Prisma client singleton, and first migration.
+- None.
 
 ## Next Up
 

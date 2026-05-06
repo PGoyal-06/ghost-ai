@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useProjectDialogs } from "./project-dialogs-context"
+import { useProjectActions } from "@/hooks/use-project-actions"
 import {
   Dialog,
   DialogContent,
@@ -15,86 +16,52 @@ import { Input } from "@/components/ui/input"
 
 function slugify(text: string) {
   return text
-    .toString()
     .toLowerCase()
     .trim()
-    .replace(/\s+/g, "-") // Replace spaces with -
-    .replace(/[^\w\-]+/g, "") // Remove all non-word chars
-    .replace(/\-\-+/g, "-") // Replace multiple - with single -
+    .replace(/\s+/g, "-")
+    .replace(/[^\w-]+/g, "")
+    .replace(/--+/g, "-")
 }
 
 export function ProjectDialogs() {
-  const { isOpen, activeProject, closeDialog, addProject, updateProject, deleteProject } = useProjectDialogs()
-  
+  const { isOpen, activeProject, closeDialog } = useProjectDialogs()
+  const { create, rename, remove, isSubmitting } = useProjectActions()
+
   const [name, setName] = useState("")
-  const [slug, setSlug] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  
+  const [suffix, setSuffix] = useState("")
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Reset states when dialog opens or project changes
   useEffect(() => {
     if (isOpen === "rename" && activeProject) {
       setName(activeProject.name)
-      setSlug(activeProject.slug)
-    } else {
+    } else if (isOpen === "create") {
       setName("")
-      setSlug("")
+      setSuffix(Math.random().toString(36).slice(2, 6))
     }
-    setIsSubmitting(false)
   }, [isOpen, activeProject])
 
-  // Focus input when dialog opens
   useEffect(() => {
     if ((isOpen === "create" || isOpen === "rename") && inputRef.current) {
-      // Small timeout to ensure dialog animation has started
-      const timer = setTimeout(() => {
-        inputRef.current?.focus()
-      }, 50)
+      const timer = setTimeout(() => inputRef.current?.focus(), 50)
       return () => clearTimeout(timer)
     }
   }, [isOpen])
 
-  // Update slug automatically when typing in create mode
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newName = e.target.value
-    setName(newName)
-    if (isOpen === "create") {
-      setSlug(slugify(newName))
-    }
-  }
+  const roomId = name ? `${slugify(name)}-${suffix}` : ""
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (isOpen === "delete") {
-      setIsSubmitting(true)
-      // Mock API call
-      setTimeout(() => {
-        if (activeProject) deleteProject(activeProject.id)
-        setIsSubmitting(false)
-        closeDialog()
-      }, 500)
-      return
+    if (isOpen === "create" && name.trim()) {
+      await create(name.trim())
+    } else if (isOpen === "rename" && activeProject && name.trim()) {
+      await rename(activeProject.id, name.trim())
+    } else if (isOpen === "delete" && activeProject) {
+      await remove(activeProject.id)
     }
-
-    if (!name.trim()) return
-
-    setIsSubmitting(true)
-    // Mock API call
-    setTimeout(() => {
-      if (isOpen === "create") {
-        addProject(name, slug)
-      } else if (isOpen === "rename" && activeProject) {
-        updateProject(activeProject.id, name, slug)
-      }
-      setIsSubmitting(false)
-      closeDialog()
-    }, 500)
   }
 
   return (
     <>
-      {/* Create / Rename Dialog */}
       <Dialog
         open={isOpen === "create" || isOpen === "rename"}
         onOpenChange={(open) => !open && closeDialog()}
@@ -115,14 +82,14 @@ export function ProjectDialogs() {
               <Input
                 ref={inputRef}
                 value={name}
-                onChange={handleNameChange}
+                onChange={(e) => setName(e.target.value)}
                 placeholder="Project name"
                 disabled={isSubmitting}
                 className="text-white"
               />
-              {isOpen === "create" && name && (
+              {isOpen === "create" && roomId && (
                 <p className="text-xs text-copy-muted mt-2">
-                  Slug: <span className="text-copy-primary">{slug}</span>
+                  Room ID: <span className="text-copy-primary">{roomId}</span>
                 </p>
               )}
             </div>
@@ -143,14 +110,14 @@ export function ProjectDialogs() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Dialog */}
       <Dialog open={isOpen === "delete"} onOpenChange={(open) => !open && closeDialog()}>
         <DialogContent>
           <form onSubmit={handleSubmit}>
             <DialogHeader>
               <DialogTitle className="text-white">Delete Project</DialogTitle>
               <DialogDescription>
-                Are you sure you want to delete the project &ldquo;{activeProject?.name}&rdquo;? This action cannot be undone.
+                Are you sure you want to delete &ldquo;{activeProject?.name}&rdquo;? This action
+                cannot be undone.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="mt-6">
