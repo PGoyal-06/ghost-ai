@@ -10,6 +10,7 @@ interface EditorShellProps {
   isProjectOwner?: boolean
   projectId?: string
   projectName?: string
+  onOpenTemplatesModal?: () => void
 }
 
 export function EditorShell({
@@ -17,6 +18,7 @@ export function EditorShell({
   isProjectOwner = false,
   projectId,
   projectName,
+  onOpenTemplatesModal,
 }: EditorShellProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isAiSidebarOpen, setIsAiSidebarOpen] = useState(false)
@@ -36,6 +38,7 @@ export function EditorShell({
         onToggleAiSidebar={
           isWorkspace ? () => setIsAiSidebarOpen((prev) => !prev) : undefined
         }
+        onOpenTemplatesModal={isWorkspace ? onOpenTemplatesModal : undefined}
       />
       <ProjectSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 

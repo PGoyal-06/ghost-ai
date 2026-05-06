@@ -50,6 +50,8 @@ Add a small starter template library so users can start a canvas from a pre-buil
 - don’t change node or edge rendering behavior
 - keep this focused on importing predefined templates
 
+- Also remove the minimap from the canvas on the bottom right side.
+
 ## Check When Done
 
 - Template data is defined using shared canvas types.
