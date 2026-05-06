@@ -74,9 +74,18 @@ export function CanvasEdgeComponent({
         d={edgePath}
         className="peer cursor-pointer stroke-transparent"
         style={{ strokeWidth: 20, fill: "none" }}
+        role="button"
+        tabIndex={0}
+        aria-label={label ? "Edit edge label" : "Add edge label"}
         onDoubleClick={(e) => {
           e.stopPropagation();
           setIsEditing(true);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " " || e.key === "F2") {
+            e.preventDefault();
+            setIsEditing(true);
+          }
         }}
       />
       {/* Visual path */}

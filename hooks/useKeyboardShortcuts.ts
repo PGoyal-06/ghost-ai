@@ -5,17 +5,19 @@ import type { ReactFlowInstance } from "@xyflow/react";
 
 export function useKeyboardShortcuts(
   reactFlow: ReactFlowInstance | null,
-  { undo, redo }: { undo: () => void; redo: () => void }
+  { undo, redo }: { undo: () => void; redo: () => void },
 ) {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
+      const target = e.target;
       if (
-        target.tagName === "INPUT" ||
-        target.tagName === "TEXTAREA" ||
-        target.isContentEditable
-      )
-        return;
+        target instanceof HTMLElement &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable)
+        ) {
+          return;
+        }
 
       const ctrl = e.ctrlKey || e.metaKey;
 

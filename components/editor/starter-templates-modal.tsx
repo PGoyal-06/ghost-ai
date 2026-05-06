@@ -30,6 +30,11 @@ function nodeDims(n: CanvasNode) {
 
 function TemplatePreview({ template }: { template: CanvasTemplate }) {
   const { nodes, edges } = template;
+  if (nodes.length === 0) {
+    return (
+      <svg viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} className="w-full" style={{ background: "#0D0D0D", display: "block" }} />
+    );
+  }
 
   const minX = Math.min(...nodes.map((n) => n.position.x));
   const minY = Math.min(...nodes.map((n) => n.position.y));
@@ -38,7 +43,10 @@ function TemplatePreview({ template }: { template: CanvasTemplate }) {
 
   const availW = VIEW_W - PAD * 2;
   const availH = VIEW_H - PAD * 2;
-  const scale = Math.min(availW / (maxX - minX), availH / (maxY - minY));
+  
+  const spanW = Math.max(1, maxX - minX);
+  const spanH = Math.max(1, maxY - minY);
+  const scale = Math.min(availW / spanW, availH / spanH);
 
   const tx = PAD + (availW - (maxX - minX) * scale) / 2 - minX * scale;
   const ty = PAD + (availH - (maxY - minY) * scale) / 2 - minY * scale;

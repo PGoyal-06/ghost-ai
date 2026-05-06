@@ -179,9 +179,10 @@ function CollaborativeCanvas({ isTemplatesModalOpen = false, onCloseTemplatesMod
 
   const onEdgeUpdate = useCallback(
     (oldEdge: Edge, newConnection: Connection) => {
+      if (!newConnection.source || !newConnection.target) return;
       const updatedEdge: CanvasEdge = {
         ...(oldEdge as CanvasEdge),
-        id: `edge-${Date.now()}`,
+        id: oldEdge.id,
         source: newConnection.source,
         target: newConnection.target,
         sourceHandle: newConnection.sourceHandle,

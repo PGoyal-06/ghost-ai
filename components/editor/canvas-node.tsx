@@ -1,10 +1,21 @@
 "use client";
 
-import { Handle, Position, NodeResizer, NodeToolbar, useReactFlow, type NodeProps } from "@xyflow/react";
+import {
+  Handle,
+  Position,
+  NodeResizer,
+  NodeToolbar,
+  useReactFlow,
+  type NodeProps,
+} from "@xyflow/react";
 import { type CanvasNode, NODE_COLORS } from "@/types/canvas";
 import { NodeShapeRenderer } from "./node-shape";
 
-export function CanvasNodeComponent({ id, data, selected }: NodeProps<CanvasNode>) {
+export function CanvasNodeComponent({
+  id,
+  data,
+  selected,
+}: NodeProps<CanvasNode>) {
   const { updateNodeData } = useReactFlow();
 
   return (
@@ -25,17 +36,20 @@ export function CanvasNodeComponent({ id, data, selected }: NodeProps<CanvasNode
         {NODE_COLORS.map((colorPair) => (
           <button
             key={colorPair.fill}
-            className={`h-6 w-6 rounded-full border border-surface-border transition-all hover:scale-110 focus:outline-none`}
+            type="button"
+            aria-label={`Set node color: ${colorPair.character}`}
+            className="h-6 w-6 rounded-full border border-surface-border transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-1"
             style={{
               backgroundColor: colorPair.fill,
               boxShadow:
                 data.color === colorPair.fill
                   ? `0 0 0 2px var(--bg-surface), 0 0 0 4px ${colorPair.text}`
                   : undefined,
-              ...(data.color !== colorPair.fill && {
-                // Add a hover glow variable, will rely on Tailwind arbitrary values via inline style or class
-                "--hover-glow": colorPair.text,
-              } as React.CSSProperties),
+              ...(data.color !== colorPair.fill &&
+                ({
+                  // Add a hover glow variable, will rely on Tailwind arbitrary values via inline style or class
+                  "--hover-glow": colorPair.text,
+                } as React.CSSProperties)),
             }}
             onMouseEnter={(e) => {
               if (data.color !== colorPair.fill) {
@@ -52,7 +66,7 @@ export function CanvasNodeComponent({ id, data, selected }: NodeProps<CanvasNode
           />
         ))}
       </NodeToolbar>
-      
+
       <NodeShapeRenderer
         shape={data.shape}
         color={data.color}

@@ -28,7 +28,7 @@ export function NodeShapeRenderer({
       textareaRef.current.focus();
       textareaRef.current.setSelectionRange(
         textareaRef.current.value.length,
-        textareaRef.current.value.length
+        textareaRef.current.value.length,
       );
       textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
@@ -71,6 +71,15 @@ export function NodeShapeRenderer({
     return (
       <div
         onDoubleClick={handleDoubleClick}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " " || e.key === "F2") {
+            e.preventDefault();
+            handleDoubleClick();
+          }
+        }}
+        role="button"
+        tabIndex={onLabelChange ? 0 : -1}
+        aria-label={label ? "Edit node label" : "Add node label"}
         className={`line-clamp-3 w-full cursor-text select-none ${pxClass} text-center text-sm font-medium leading-snug text-copy`}
       >
         {label || <span className="text-copy-muted/50">Type something...</span>}
