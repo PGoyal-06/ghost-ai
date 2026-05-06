@@ -1,10 +1,15 @@
-import { PrismaClient } from '../app/generated/prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
-import { withAccelerate } from '@prisma/extension-accelerate';
+import { PrismaClient } from "../app/generated/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { Pool } from "pg";
+import { withAccelerate } from "@prisma/extension-accelerate";
 
-const connectionString = process.env.DATABASE_URL || '';
-const isAccelerate = connectionString.startsWith('prisma+postgres://') || connectionString.startsWith('prisma://');
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error("DATABASE_URL environment variable is not set");
+}
+const isAccelerate =
+  connectionString.startsWith("prisma+postgres://") ||
+  connectionString.startsWith("prisma://");
 
 const createPrismaClient = () => {
   if (isAccelerate) {
@@ -24,4 +29,4 @@ const globalForPrisma = globalThis as unknown as {
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
