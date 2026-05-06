@@ -7,6 +7,15 @@ export interface Project {
   isOwned: boolean;
 }
 
+interface OwnedProjectRow {
+  id: string;
+  name: string;
+}
+
+interface CollaborationRow {
+  project: { id: string; name: string };
+}
+
 export async function getProjects(): Promise<{
   owned: Project[];
   shared: Project[];
@@ -19,17 +28,17 @@ export async function getProjects(): Promise<{
       where: { ownerId: identity.userId },
       orderBy: { createdAt: "desc" },
       select: { id: true, name: true },
-    }),
+    }) as Promise<OwnedProjectRow[]>,
     prisma.projectCollaborator.findMany({
       where: { email: { in: identity.emails } },
       include: { project: { select: { id: true, name: true } } },
-    }),
+    }) as Promise<CollaborationRow[]>,
   ]);
 
   const ownedIds = new Set(ownedRaw.map((p) => p.id));
 
   return {
-    owned: ownedRaw.map((p: { id: string; name: string }) => ({
+    owned: ownedRaw.map((p) => ({
       ...p,
       isOwned: true as const,
     })),
