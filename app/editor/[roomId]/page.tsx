@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation"
 import { AccessDenied } from "@/components/editor/access-denied"
-import { EditorShell } from "@/components/editor/editor-shell"
-import { CanvasWrapper } from "@/components/editor/canvas-wrapper"
+import { WorkspaceView } from "@/components/editor/workspace-view"
 import { getAccessibleProject, getCurrentProjectIdentity } from "@/lib/project-access"
 
 export default async function EditorWorkspacePage({
@@ -23,12 +22,10 @@ export default async function EditorWorkspacePage({
   }
 
   return (
-    <EditorShell
+    <WorkspaceView
       projectId={project.id}
       projectName={project.name}
       isProjectOwner={project.ownerId === identity.userId}
-    >
-      <CanvasWrapper roomId={project.id} />
-    </EditorShell>
+    />
   )
 }

@@ -51,4 +51,9 @@ export interface CanvasNodeData {
 
 export type CanvasNode = Node<CanvasNodeData, "canvasNode">;
 
-export type CanvasEdge = Edge<Record<string, unknown>, "canvasEdge">;
+export interface CanvasEdgeData {
+  label?: string;
+  [key: string]: unknown;
+}
+
+export type CanvasEdge = Edge<CanvasEdgeData, "canvasEdge">;

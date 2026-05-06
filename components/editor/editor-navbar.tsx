@@ -2,6 +2,7 @@
 
 import {
   Bot,
+  LayoutTemplate,
   PanelLeftClose,
   PanelLeftOpen,
   PanelRightClose,
@@ -16,6 +17,7 @@ interface EditorNavbarProps {
   isSidebarOpen: boolean;
   onToggleSidebar: () => void;
   onOpenShareDialog?: () => void;
+  onOpenTemplatesModal?: () => void;
   projectName?: string;
   isAiSidebarOpen?: boolean;
   onToggleAiSidebar?: () => void;
@@ -25,6 +27,7 @@ export function EditorNavbar({
   isSidebarOpen,
   onToggleSidebar,
   onOpenShareDialog,
+  onOpenTemplatesModal,
   projectName,
   isAiSidebarOpen = false,
   onToggleAiSidebar,
@@ -60,6 +63,17 @@ export function EditorNavbar({
       <div className="flex-1" />
 
       <div className="flex items-center gap-2 px-3">
+        {onOpenTemplatesModal ? (
+          <Button
+            variant="ghost"
+            onClick={onOpenTemplatesModal}
+            className="text-copy-secondary hover:bg-subtle hover:text-copy-primary"
+          >
+            <LayoutTemplate className="h-4 w-4" />
+            Templates
+          </Button>
+        ) : null}
+
         {projectName && onOpenShareDialog ? (
           <Button
             variant="outline"
