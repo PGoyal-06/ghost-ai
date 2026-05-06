@@ -1,11 +1,12 @@
 "use client"
 
 import { Plus, X, Pencil, Trash2 } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { useProjectDialogs, type Project } from "./project-dialogs-context"
+import { cn } from "@/lib/utils"
 
 interface ProjectSidebarProps {
   isOpen: boolean
@@ -14,7 +15,9 @@ interface ProjectSidebarProps {
 
 export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
   const router = useRouter()
+  const pathname = usePathname()
   const { openDialog, ownedProjects, sharedProjects } = useProjectDialogs()
+  const activeProjectId = pathname.startsWith("/editor/") ? pathname.split("/")[2] : null
 
   const navigateTo = (project: Project) => {
     router.push(`/editor/${project.id}`)
@@ -24,7 +27,7 @@ export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
   return (
     <>
       {isOpen && (
-        <div className="fixed inset-0 z-40 bg-black/20" onClick={onClose} />
+        <div className="fixed inset-0 z-40 bg-base/70" onClick={onClose} />
       )}
       <aside
         className={`fixed top-0 left-0 h-full w-72 z-50 flex flex-col bg-elevated/95 backdrop-blur-md border-r border-surface-border transition-transform duration-200 ease-in-out ${
@@ -67,32 +70,48 @@ export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
                     ownedProjects.map((project) => (
                       <div
                         key={project.id}
-                        onClick={() => navigateTo(project)}
-                        className="group flex items-center justify-between px-2 py-2 rounded-md hover:bg-surface-elevated cursor-pointer"
+                        className={cn(
+                          "group flex w-full items-center justify-between rounded-xl border px-2 py-2 transition-colors",
+                          activeProjectId === project.id
+                            ? "border-brand/30 bg-accent-dim"
+                            : "border-transparent hover:bg-subtle"
+                        )}
                       >
-                        <span className="text-sm text-copy-primary truncate pr-2">
-                          {project.name}
-                        </span>
-                        <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
+                        <button
+                          type="button"
+                          onClick={() => navigateTo(project)}
+                          className="min-w-0 flex-1 text-left"
+                        >
+                          <span
+                            className={cn(
+                              "block truncate pr-2 text-sm",
+                              activeProjectId === project.id ? "text-brand" : "text-copy-primary"
+                            )}
+                          >
+                            {project.name}
+                          </span>
+                        </button>
+                        <div
+                          className={cn(
+                            "flex items-center gap-1 transition-opacity",
+                            activeProjectId === project.id
+                              ? "opacity-100"
+                              : "opacity-0 group-hover:opacity-100"
+                          )}
+                        >
                           <Button
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7 text-copy-muted hover:text-copy-primary"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              openDialog("rename", project)
-                            }}
+                            onClick={() => openDialog("rename", project)}
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 text-red-500 hover:text-red-400"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              openDialog("delete", project)
-                            }}
+                            className="h-7 w-7 text-state-error hover:bg-state-error/10 hover:text-state-error"
+                            onClick={() => openDialog("delete", project)}
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </Button>
@@ -115,15 +134,26 @@ export function ProjectSidebar({ isOpen, onClose }: ProjectSidebarProps) {
                     </div>
                   ) : (
                     sharedProjects.map((project) => (
-                      <div
+                      <button
+                        type="button"
                         key={project.id}
                         onClick={() => navigateTo(project)}
-                        className="group flex items-center justify-between px-2 py-2 rounded-md hover:bg-surface-elevated cursor-pointer"
+                        className={cn(
+                          "group flex w-full items-center justify-between rounded-xl border px-2 py-2 text-left transition-colors",
+                          activeProjectId === project.id
+                            ? "border-brand/30 bg-accent-dim"
+                            : "border-transparent hover:bg-subtle"
+                        )}
                       >
-                        <span className="text-sm text-copy-primary truncate">
+                        <span
+                          className={cn(
+                            "truncate text-sm",
+                            activeProjectId === project.id ? "text-brand" : "text-copy-primary"
+                          )}
+                        >
                           {project.name}
                         </span>
-                      </div>
+                      </button>
                     ))
                   )}
                 </div>

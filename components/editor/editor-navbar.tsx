@@ -1,18 +1,37 @@
-"use client"
+"use client";
 
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react"
-import { UserButton } from "@clerk/nextjs"
-import { Button } from "@/components/ui/button"
+import {
+  Bot,
+  PanelLeftClose,
+  PanelLeftOpen,
+  PanelRightClose,
+  PanelRightOpen,
+  Share2,
+} from "lucide-react";
+import { UserButton } from "@clerk/nextjs";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface EditorNavbarProps {
-  isSidebarOpen: boolean
-  onToggleSidebar: () => void
+  isSidebarOpen: boolean;
+  onToggleSidebar: () => void;
+  onOpenShareDialog?: () => void;
+  projectName?: string;
+  isAiSidebarOpen?: boolean;
+  onToggleAiSidebar?: () => void;
 }
 
-export function EditorNavbar({ isSidebarOpen, onToggleSidebar }: EditorNavbarProps) {
+export function EditorNavbar({
+  isSidebarOpen,
+  onToggleSidebar,
+  onOpenShareDialog,
+  projectName,
+  isAiSidebarOpen = false,
+  onToggleAiSidebar,
+}: EditorNavbarProps) {
   return (
     <header className="fixed top-0 left-0 right-0 h-12 z-50 flex items-center bg-surface border-b border-surface-border">
-      <div className="flex items-center px-3">
+      <div className="flex min-w-0 items-center gap-3 px-3">
         <Button
           variant="ghost"
           size="icon"
@@ -25,11 +44,54 @@ export function EditorNavbar({ isSidebarOpen, onToggleSidebar }: EditorNavbarPro
             <PanelLeftOpen className="h-5 w-5" />
           )}
         </Button>
+
+        {projectName ? (
+          <>
+            <div className="h-5 w-px bg-surface-border" />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-copy-primary">
+                {projectName}
+              </p>
+            </div>
+          </>
+        ) : null}
       </div>
+
       <div className="flex-1" />
-      <div className="px-3 flex items-center">
+
+      <div className="flex items-center gap-2 px-3">
+        {projectName && onOpenShareDialog ? (
+          <Button
+            variant="outline"
+            onClick={onOpenShareDialog}
+            className="border-surface-border bg-elevated text-copy-secondary hover:bg-subtle hover:text-copy-primary"
+          >
+            <Share2 className="h-4 w-4" />
+            Share
+          </Button>
+        ) : null}
+
+        {onToggleAiSidebar ? (
+          <Button
+            variant="ghost"
+            onClick={onToggleAiSidebar}
+            className={cn(
+              "text-copy-secondary hover:bg-subtle hover:text-copy-primary",
+              isAiSidebarOpen ? "bg-accent-dim text-brand" : undefined,
+            )}
+          >
+            <Bot className="h-4 w-4" />
+            AI
+            {isAiSidebarOpen ? (
+              <PanelRightClose className="h-4 w-4" />
+            ) : (
+              <PanelRightOpen className="h-4 w-4" />
+            )}
+          </Button>
+        ) : null}
+
         <UserButton />
       </div>
     </header>
-  )
+  );
 }
