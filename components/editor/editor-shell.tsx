@@ -4,6 +4,8 @@ import { useState } from "react"
 import { EditorNavbar } from "./editor-navbar"
 import { ProjectSidebar } from "./project-sidebar"
 import { ShareDialog } from "./share-dialog"
+import { AiSidebar } from "./ai-sidebar"
+import type { SaveStatus } from "@/hooks/useCanvasAutosave"
 
 interface EditorShellProps {
   children: React.ReactNode
@@ -11,6 +13,8 @@ interface EditorShellProps {
   projectId?: string
   projectName?: string
   onOpenTemplatesModal?: () => void
+  saveStatus?: SaveStatus
+  onManualSave?: () => void
 }
 
 export function EditorShell({
@@ -19,6 +23,8 @@ export function EditorShell({
   projectId,
   projectName,
   onOpenTemplatesModal,
+  saveStatus,
+  onManualSave,
 }: EditorShellProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isAiSidebarOpen, setIsAiSidebarOpen] = useState(false)
@@ -39,6 +45,8 @@ export function EditorShell({
           isWorkspace ? () => setIsAiSidebarOpen((prev) => !prev) : undefined
         }
         onOpenTemplatesModal={isWorkspace ? onOpenTemplatesModal : undefined}
+        saveStatus={isWorkspace ? saveStatus : undefined}
+        onManualSave={isWorkspace ? onManualSave : undefined}
       />
       <ProjectSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
@@ -54,31 +62,7 @@ export function EditorShell({
           <section className="min-w-0 flex-1">{children}</section>
 
           {isWorkspace ? (
-            <aside
-              className={`fixed bottom-0 right-0 top-12 z-40 w-full max-w-sm border-l border-surface-border bg-elevated/95 backdrop-blur-md transition-transform duration-200 ease-in-out md:max-w-md ${
-                isAiSidebarOpen ? "translate-x-0" : "translate-x-full"
-              }`}
-            >
-              <div className="flex h-full flex-col">
-                <div className="border-b border-surface-border px-5 py-4">
-                  <p className="text-sm font-semibold text-copy-primary">AI Assistant</p>
-                  <p className="mt-1 text-xs leading-relaxed text-copy-muted">
-                    Chat-driven architecture editing will live here in a later feature.
-                  </p>
-                </div>
-                <div className="flex flex-1 items-center justify-center px-6 text-center">
-                  <div>
-                    <p className="text-sm font-medium text-copy-secondary">
-                      AI workspace placeholder
-                    </p>
-                    <p className="mt-2 text-xs leading-relaxed text-copy-muted">
-                      Use the navbar toggle to open and close this panel while the editor shell is
-                      being wired.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </aside>
+            <AiSidebar isOpen={isAiSidebarOpen} onClose={() => setIsAiSidebarOpen(false)} />
           ) : null}
         </div>
       </main>

@@ -6,6 +6,7 @@ import {
   NodeResizer,
   NodeToolbar,
   useReactFlow,
+  useUpdateNodeInternals,
   type NodeProps,
 } from "@xyflow/react";
 import { type CanvasNode, NODE_COLORS } from "@/types/canvas";
@@ -17,6 +18,7 @@ export function CanvasNodeComponent({
   selected,
 }: NodeProps<CanvasNode>) {
   const { updateNodeData } = useReactFlow();
+  const updateNodeInternals = useUpdateNodeInternals();
 
   return (
     <div className="group relative h-full w-full">
@@ -26,6 +28,7 @@ export function CanvasNodeComponent({
         minWidth={80}
         minHeight={80}
         handleClassName="h-2 w-2 !border-surface-border !bg-surface"
+        onResize={() => updateNodeInternals(id)}
       />
 
       <NodeToolbar
