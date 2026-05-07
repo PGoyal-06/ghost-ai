@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import { ReactFlow, Background, ConnectionMode, useReactFlow, ReactFlowProvider, MarkerType, type Edge, type Connection } from "@xyflow/react";
-import { useLiveblocksFlow, Cursors } from "@liveblocks/react-flow";
+import { useLiveblocksFlow, Cursors, type CursorsCursorProps } from "@liveblocks/react-flow";
 import {
   LiveblocksProvider,
   RoomProvider,
@@ -11,9 +11,13 @@ import {
   useRedo,
   useCanUndo,
   useCanRedo,
+  useOthers,
+  useOther,
 } from "@liveblocks/react";
-import { ZoomIn, ZoomOut, Maximize2, Undo2, Redo2 } from "lucide-react";
+import { UserButton } from "@clerk/nextjs";
+import { ZoomIn, ZoomOut, Maximize2, Undo2, Redo2, Cloud, CloudOff, Loader2, Check } from "lucide-react";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { useCanvasAutosave, type SaveStatus } from "@/hooks/useCanvasAutosave";
 
 import { CanvasNodeComponent } from "./canvas-node";
 import { CanvasEdgeComponent } from "./canvas-edge";
@@ -38,6 +42,89 @@ const edgeTypes = {
 };
 
 let nodeCounter = 0;
+
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0] ?? "")
+    .join("")
+    .toUpperCase();
+}
+
+function CanvasCursor({ connectionId }: CursorsCursorProps) {
+  const info = useOther(connectionId, (u) => u.info);
+  if (!info) return null;
+
+  return (
+    <div className="pointer-events-none select-none inline-flex flex-col items-start">
+      <svg width="12" height="16" viewBox="0 0 12 16" fill="none">
+        <path
+          d="M0 0L0 13L3.5 9.5L6.5 15L8.5 14L5.5 8.5L11 8.5Z"
+          fill={info.cursorColor}
+          stroke="white"
+          strokeWidth="0.8"
+          strokeLinejoin="round"
+        />
+      </svg>
+      <div
+        className="mt-1 rounded px-1.5 py-0.5 text-xs font-semibold text-white whitespace-nowrap"
+        style={{ backgroundColor: info.cursorColor }}
+      >
+        {info.name}
+      </div>
+    </div>
+  );
+}
+
+function PresenceAvatars() {
+  const others = useOthers();
+  const visible = others.slice(0, 5);
+  const overflow = Math.max(0, others.length - 5);
+
+  return (
+    <div className="absolute top-3 right-3 z-10 flex items-center gap-2">
+      {others.length > 0 && (
+        <>
+          <div className="flex items-center">
+            {visible.map((user, i) => (
+              <div
+                key={user.connectionId}
+                className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full ring-2 ring-[#080809] text-xs font-semibold text-white"
+                style={{
+                  backgroundColor: user.info?.cursorColor ?? "#6366f1",
+                  marginLeft: i > 0 ? "-8px" : undefined,
+                  zIndex: visible.length - i,
+                }}
+                title={user.info?.name}
+              >
+                {user.info?.avatar ? (
+                  <img
+                    src={user.info.avatar}
+                    alt={user.info.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  getInitials(user.info?.name ?? "")
+                )}
+              </div>
+            ))}
+            {overflow > 0 && (
+              <div
+                className="flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-[#080809] bg-elevated text-xs font-semibold text-copy-secondary"
+                style={{ marginLeft: "-8px" }}
+              >
+                +{overflow}
+              </div>
+            )}
+          </div>
+          <div className="h-5 w-px bg-surface-border" />
+        </>
+      )}
+      <UserButton />
+    </div>
+  );
+}
 
 function ControlBar() {
   const undo = useUndo();
@@ -92,12 +179,54 @@ function ControlBar() {
   );
 }
 
-interface CollaborativeCanvasProps {
-  isTemplatesModalOpen?: boolean;
-  onCloseTemplatesModal?: () => void;
+/* ------------------------------------------------------------------ */
+/*  Save status indicator                                              */
+/* ------------------------------------------------------------------ */
+
+function SaveStatusIndicator({ status }: { status: SaveStatus }) {
+  return (
+    <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 rounded-full border border-surface-border bg-surface px-3 py-1.5 shadow-sm">
+      {status === "saving" && (
+        <>
+          <Loader2 className="h-3 w-3 animate-spin text-copy-muted" />
+          <span className="text-xs text-copy-muted">Saving…</span>
+        </>
+      )}
+      {status === "saved" && (
+        <>
+          <Check className="h-3 w-3 text-state-success" />
+          <span className="text-xs text-copy-muted">Saved</span>
+        </>
+      )}
+      {status === "error" && (
+        <>
+          <CloudOff className="h-3 w-3 text-state-error" />
+          <span className="text-xs text-state-error">Save failed</span>
+        </>
+      )}
+      {status === "idle" && (
+        <>
+          <Cloud className="h-3 w-3 text-copy-muted" />
+          <span className="text-xs text-copy-muted">Ready</span>
+        </>
+      )}
+    </div>
+  );
 }
 
-function CollaborativeCanvas({ isTemplatesModalOpen = false, onCloseTemplatesModal }: CollaborativeCanvasProps) {
+/* ------------------------------------------------------------------ */
+/*  Collaborative canvas                                               */
+/* ------------------------------------------------------------------ */
+
+interface CollaborativeCanvasProps {
+  projectId: string;
+  isTemplatesModalOpen?: boolean;
+  onCloseTemplatesModal?: () => void;
+  onSaveStatusChange?: (status: SaveStatus) => void;
+  onManualSaveReady?: (save: () => void) => void;
+}
+
+function CollaborativeCanvas({ projectId, isTemplatesModalOpen = false, onCloseTemplatesModal, onSaveStatusChange, onManualSaveReady }: CollaborativeCanvasProps) {
   const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onDelete } =
     useLiveblocksFlow<CanvasNode, CanvasEdge>({
       nodes: { initial: [] },
@@ -112,6 +241,49 @@ function CollaborativeCanvas({ isTemplatesModalOpen = false, onCloseTemplatesMod
   const redo = useRedo();
 
   useKeyboardShortcuts(reactFlow, { undo, redo });
+
+  // --- Autosave ---
+  const { status: saveStatus, manualSave } = useCanvasAutosave(projectId, nodes, edges);
+
+  // Report save status and manual save to parent
+  useEffect(() => {
+    onSaveStatusChange?.(saveStatus);
+  }, [saveStatus, onSaveStatusChange]);
+
+  useEffect(() => {
+    onManualSaveReady?.(manualSave);
+  }, [manualSave, onManualSaveReady]);
+
+  // --- Load saved canvas if room is empty on mount ---
+  const hasLoadedRef = useRef(false);
+
+  useEffect(() => {
+    if (hasLoadedRef.current) return;
+    hasLoadedRef.current = true;
+
+    // If the room already has content, skip loading
+    if (nodes.length > 0 || edges.length > 0) return;
+
+    (async () => {
+      try {
+        const res = await fetch(`/api/projects/${projectId}/canvas`);
+        if (!res.ok) return;
+        const data = await res.json() as { nodes: CanvasNode[]; edges: CanvasEdge[] };
+        if (!data.nodes?.length && !data.edges?.length) return;
+
+        if (data.nodes.length > 0) {
+          onNodesChange(data.nodes.map((n) => ({ type: "add" as const, item: n })));
+        }
+        if (data.edges.length > 0) {
+          onEdgesChange(data.edges.map((e) => ({ type: "add" as const, item: e })));
+        }
+        setTimeout(() => reactFlow.fitView({ duration: 300 }), 100);
+      } catch {
+        // Silently fail — user can still use the canvas
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const importTemplate = useCallback(
     (template: CanvasTemplate) => {
@@ -153,6 +325,10 @@ function CollaborativeCanvas({ isTemplatesModalOpen = false, onCloseTemplatesMod
           x: event.clientX,
           y: event.clientY,
         });
+
+        // Center the node on the cursor position
+        position.x -= payload.width / 2;
+        position.y -= payload.height / 2;
 
         const newNode: CanvasNode = {
           id: `${payload.shape}-${Date.now()}-${nodeCounter++}`,
@@ -219,11 +395,12 @@ function CollaborativeCanvas({ isTemplatesModalOpen = false, onCloseTemplatesMod
         onReconnect={onEdgeUpdate}
         onDragOver={onDragOver}
         onDrop={onDrop}
-        fitView
       >
-        <Cursors />
+        <Cursors components={{ Cursor: CanvasCursor }} />
         <Background />
       </ReactFlow>
+      <PresenceAvatars />
+      <SaveStatusIndicator status={saveStatus} />
       <ControlBar />
       <ShapePanel />
       <StarterTemplatesModal
@@ -278,23 +455,29 @@ function CanvasError() {
 
 interface CanvasWrapperProps {
   roomId: string;
+  projectId: string;
   isTemplatesModalOpen?: boolean;
   onCloseTemplatesModal?: () => void;
+  onSaveStatusChange?: (status: SaveStatus) => void;
+  onManualSaveReady?: (save: () => void) => void;
 }
 
-export function CanvasWrapper({ roomId, isTemplatesModalOpen, onCloseTemplatesModal }: CanvasWrapperProps) {
+export function CanvasWrapper({ roomId, projectId, isTemplatesModalOpen, onCloseTemplatesModal, onSaveStatusChange, onManualSaveReady }: CanvasWrapperProps) {
   return (
-    <LiveblocksProvider authEndpoint="/api/liveblocks-auth">
+    <LiveblocksProvider authEndpoint="/api/liveblocks-auth" throttle={16}>
       <RoomProvider
         id={roomId}
-        initialPresence={{ cursor: null, isThinking: false }}
+        initialPresence={{ cursor: null, thinking: false }}
       >
         <ClientSideSuspense fallback={<CanvasLoading />}>
           <ErrorBoundary fallback={<CanvasError />}>
             <ReactFlowProvider>
               <CollaborativeCanvas
+                projectId={projectId}
                 isTemplatesModalOpen={isTemplatesModalOpen}
                 onCloseTemplatesModal={onCloseTemplatesModal}
+                onSaveStatusChange={onSaveStatusChange}
+                onManualSaveReady={onManualSaveReady}
               />
             </ReactFlowProvider>
           </ErrorBoundary>

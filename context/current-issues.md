@@ -1,6 +1,11 @@
-~~Edge behaviour is a little buggy. I am not able to connect edges with certain shape nodes.~~
+Review the editor workspace implementation and fix the following
+issues. Check `components/editor` first. Do not break existing
+features.
 
-All edge routing and behavior issues have been resolved:
-- All shapes (including SVGs) now accept edge connections accurately on all four sides.
-- Edges can be fully repositioned/reconnected to clean up flow layout (`edgesUpdatable`).
-- Edge labels can be edited directly by double-clicking anywhere on the edge path.
+## Issues
+
+### 1. Nodes moving lat with the shape — ⏳ pending to test
+
+- Nodes move around much later after the attached shape has been moved.
+- Causes confusion and doesn't give the best UI/UX experience.
+- Refer to '/context/screenshots/nodes.png' for reference on the issue.
