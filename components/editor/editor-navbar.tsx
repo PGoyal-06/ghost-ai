@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
 import {
   Bot,
   LayoutTemplate,
@@ -39,29 +38,15 @@ export function EditorNavbar({
   saveStatus,
   onManualSave,
 }: EditorNavbarProps) {
-  // Save button label logic
-  const [saveLabel, setSaveLabel] = useState("Save");
-  const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveLabel =
+    saveStatus === "saving"
+      ? "Saving..."
+      : saveStatus === "saved"
+        ? "Saved"
+        : saveStatus === "error"
+          ? "Error"
+          : "Save";
 
-  useEffect(() => {
-    if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
-
-    if (saveStatus === "saving") {
-      setSaveLabel("Saving...");
-    } else if (saveStatus === "saved") {
-      setSaveLabel("Saved");
-      resetTimerRef.current = setTimeout(() => setSaveLabel("Save"), 2000);
-    } else if (saveStatus === "error") {
-      setSaveLabel("Error");
-      resetTimerRef.current = setTimeout(() => setSaveLabel("Save"), 2000);
-    } else {
-      setSaveLabel("Save");
-    }
-
-    return () => {
-      if (resetTimerRef.current) clearTimeout(resetTimerRef.current);
-    };
-  }, [saveStatus]);
   return (
     <header className="fixed top-0 left-0 right-0 h-12 z-50 flex items-center bg-surface border-b border-surface-border">
       <div className="flex min-w-0 items-center gap-3 px-3">

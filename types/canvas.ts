@@ -57,3 +57,8 @@ export interface CanvasEdgeData {
 }
 
 export type CanvasEdge = Edge<CanvasEdgeData, "canvasEdge">;
+
+export interface CanvasSnapshot {
+  nodes: CanvasNode[];
+  edges: CanvasEdge[];
+}

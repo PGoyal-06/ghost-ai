@@ -44,7 +44,7 @@
 ## File Organization
 
 - `lib/` — shared infrastructure: Prisma client, auth helpers, utilities.
-- `trigger/` — all durable background tasks and AI workflows.
 - `components/` — UI composition only; no business logic.
-- `app/api/` — route handlers for auth, triggering, and persistence.
+- `app/api/` — route handlers for auth, orchestration, and persistence.
+- Background task code should live in a dedicated top-level area only after a runner is configured.
 - Name files after the responsibility they contain, not the technology.

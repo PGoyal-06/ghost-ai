@@ -9,13 +9,13 @@
 | Auth             | Clerk                   | User identity and route protection                             |
 | Database         | Prisma + PostgreSQL     | Relational metadata: projects, collaborators, specs, task runs |
 | Canvas           | Liveblocks + React Flow | Real-time collaborative canvas, presence, and cursors          |
-| Background tasks | Trigger.dev             | Durable AI generation workflows                                |
+| Background tasks | Trigger.dev             | Durable background jobs, realtime run tracking, and AI workflows |
 | Artifact storage | Vercel Blob             | Canvas snapshots and generated Markdown specs                  |
 
 ## System Boundaries
 
-- `app/api` — Authenticated request handlers: input validation, ownership checks, task triggering, and persistence.
-- `trigger` — Long-running background jobs: AI design generation and spec generation.
+- `app/api` — Authenticated request handlers: input validation, ownership checks, task orchestration, and persistence.
+- `src/trigger` + `trigger.config.ts` — Trigger.dev task boundary for durable background jobs and realtime run tracking.
 - `lib` — Shared infrastructure: Prisma client, access control helpers, and utilities.
 - `components` — UI composition: canvas surfaces, sidebars, dialogs, and interactive elements.
 - `prisma` — Database schema and generated client output.
@@ -50,14 +50,14 @@
 ### Design Generation
 
 - Input: user prompt, project context, and current canvas state.
-- Execution: durable background task via Trigger.dev.
+- Execution: Trigger.dev background task.
 - Output: structured node and edge updates written into the shared Liveblocks room.
 
 ### Spec Generation
 
 - Input: current canvas graph and project context.
-- Execution: durable background task via Trigger.dev.
-- Output: Markdown technical spec saved to the filesystem and linked to the project in the database.
+- Execution: Trigger.dev background task.
+- Output: Markdown technical spec saved to private Vercel Blob storage and linked to the project in the database through `ProjectSpec` metadata.
 
 ## Invariants
 

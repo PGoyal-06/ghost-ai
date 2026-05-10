@@ -6,6 +6,7 @@ import { ProjectSidebar } from "./project-sidebar"
 import { ShareDialog } from "./share-dialog"
 import { AiSidebar } from "./ai-sidebar"
 import type { SaveStatus } from "@/hooks/useCanvasAutosave"
+import type { CanvasSnapshot } from "@/types/canvas"
 
 interface EditorShellProps {
   children: React.ReactNode
@@ -15,6 +16,7 @@ interface EditorShellProps {
   onOpenTemplatesModal?: () => void
   saveStatus?: SaveStatus
   onManualSave?: () => void
+  getCanvasSnapshot?: () => CanvasSnapshot
 }
 
 export function EditorShell({
@@ -25,6 +27,7 @@ export function EditorShell({
   onOpenTemplatesModal,
   saveStatus,
   onManualSave,
+  getCanvasSnapshot,
 }: EditorShellProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isAiSidebarOpen, setIsAiSidebarOpen] = useState(false)
@@ -62,7 +65,12 @@ export function EditorShell({
           <section className="min-w-0 flex-1">{children}</section>
 
           {isWorkspace ? (
-            <AiSidebar isOpen={isAiSidebarOpen} onClose={() => setIsAiSidebarOpen(false)} />
+            <AiSidebar
+              isOpen={isAiSidebarOpen}
+              onClose={() => setIsAiSidebarOpen(false)}
+              projectId={projectId ?? ""}
+              getCanvasSnapshot={getCanvasSnapshot}
+            />
           ) : null}
         </div>
       </main>

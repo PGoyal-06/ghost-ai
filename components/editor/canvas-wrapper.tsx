@@ -4,8 +4,6 @@ import { useCallback, useState, useEffect, useRef } from "react";
 import { ReactFlow, Background, ConnectionMode, useReactFlow, ReactFlowProvider, MarkerType, type Edge, type Connection } from "@xyflow/react";
 import { useLiveblocksFlow, Cursors, type CursorsCursorProps } from "@liveblocks/react-flow";
 import {
-  LiveblocksProvider,
-  RoomProvider,
   ClientSideSuspense,
   useUndo,
   useRedo,
@@ -23,7 +21,7 @@ import { CanvasNodeComponent } from "./canvas-node";
 import { CanvasEdgeComponent } from "./canvas-edge";
 import { ShapePanel } from "./shape-panel";
 import { StarterTemplatesModal } from "./starter-templates-modal";
-import { DEFAULT_NODE_COLOR, type CanvasNode, type CanvasEdge, type NodeShape } from "@/types/canvas";
+import { DEFAULT_NODE_COLOR, type CanvasNode, type CanvasEdge, type CanvasSnapshot, type NodeShape } from "@/types/canvas";
 import type { CanvasTemplate } from "./starter-templates";
 
 import "@xyflow/react/dist/style.css";
@@ -54,6 +52,7 @@ function getInitials(name: string): string {
 
 function CanvasCursor({ connectionId }: CursorsCursorProps) {
   const info = useOther(connectionId, (u) => u.info);
+  const isThinking = useOther(connectionId, (u) => u.presence.thinking);
   if (!info) return null;
 
   return (
@@ -68,9 +67,10 @@ function CanvasCursor({ connectionId }: CursorsCursorProps) {
         />
       </svg>
       <div
-        className="mt-1 rounded px-1.5 py-0.5 text-xs font-semibold text-white whitespace-nowrap"
+        className="mt-1 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-semibold text-white whitespace-nowrap"
         style={{ backgroundColor: info.cursorColor }}
       >
+        {isThinking ? <Loader2 className="h-3 w-3 animate-spin" /> : null}
         {info.name}
       </div>
     </div>
@@ -224,9 +224,10 @@ interface CollaborativeCanvasProps {
   onCloseTemplatesModal?: () => void;
   onSaveStatusChange?: (status: SaveStatus) => void;
   onManualSaveReady?: (save: () => void) => void;
+  onCanvasSnapshotReady?: (getSnapshot: () => CanvasSnapshot) => void;
 }
 
-function CollaborativeCanvas({ projectId, isTemplatesModalOpen = false, onCloseTemplatesModal, onSaveStatusChange, onManualSaveReady }: CollaborativeCanvasProps) {
+function CollaborativeCanvas({ projectId, isTemplatesModalOpen = false, onCloseTemplatesModal, onSaveStatusChange, onManualSaveReady, onCanvasSnapshotReady }: CollaborativeCanvasProps) {
   const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onDelete } =
     useLiveblocksFlow<CanvasNode, CanvasEdge>({
       nodes: { initial: [] },
@@ -253,6 +254,13 @@ function CollaborativeCanvas({ projectId, isTemplatesModalOpen = false, onCloseT
   useEffect(() => {
     onManualSaveReady?.(manualSave);
   }, [manualSave, onManualSaveReady]);
+
+  useEffect(() => {
+    onCanvasSnapshotReady?.(() => ({
+      nodes,
+      edges,
+    }));
+  }, [edges, nodes, onCanvasSnapshotReady]);
 
   // --- Load saved canvas if room is empty on mount ---
   const hasLoadedRef = useRef(false);
@@ -454,36 +462,30 @@ function CanvasError() {
 /* ------------------------------------------------------------------ */
 
 interface CanvasWrapperProps {
-  roomId: string;
   projectId: string;
   isTemplatesModalOpen?: boolean;
   onCloseTemplatesModal?: () => void;
   onSaveStatusChange?: (status: SaveStatus) => void;
   onManualSaveReady?: (save: () => void) => void;
+  onCanvasSnapshotReady?: (getSnapshot: () => CanvasSnapshot) => void;
 }
 
-export function CanvasWrapper({ roomId, projectId, isTemplatesModalOpen, onCloseTemplatesModal, onSaveStatusChange, onManualSaveReady }: CanvasWrapperProps) {
+export function CanvasWrapper({ projectId, isTemplatesModalOpen, onCloseTemplatesModal, onSaveStatusChange, onManualSaveReady, onCanvasSnapshotReady }: CanvasWrapperProps) {
   return (
-    <LiveblocksProvider authEndpoint="/api/liveblocks-auth" throttle={16}>
-      <RoomProvider
-        id={roomId}
-        initialPresence={{ cursor: null, thinking: false }}
-      >
-        <ClientSideSuspense fallback={<CanvasLoading />}>
-          <ErrorBoundary fallback={<CanvasError />}>
-            <ReactFlowProvider>
-              <CollaborativeCanvas
-                projectId={projectId}
-                isTemplatesModalOpen={isTemplatesModalOpen}
-                onCloseTemplatesModal={onCloseTemplatesModal}
-                onSaveStatusChange={onSaveStatusChange}
-                onManualSaveReady={onManualSaveReady}
-              />
-            </ReactFlowProvider>
-          </ErrorBoundary>
-        </ClientSideSuspense>
-      </RoomProvider>
-    </LiveblocksProvider>
+    <ClientSideSuspense fallback={<CanvasLoading />}>
+      <ErrorBoundary fallback={<CanvasError />}>
+        <ReactFlowProvider>
+          <CollaborativeCanvas
+            projectId={projectId}
+            isTemplatesModalOpen={isTemplatesModalOpen}
+            onCloseTemplatesModal={onCloseTemplatesModal}
+            onSaveStatusChange={onSaveStatusChange}
+            onManualSaveReady={onManualSaveReady}
+            onCanvasSnapshotReady={onCanvasSnapshotReady}
+          />
+        </ReactFlowProvider>
+      </ErrorBoundary>
+    </ClientSideSuspense>
   );
 }
 
