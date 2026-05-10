@@ -24,7 +24,7 @@ in real time, and reflect AI-driven canvas updates through Liveblocks.
 3. Canvas updates (realtime)
 
 - Do not manually update nodes/edges
-- Rely on Liveblocks (`useLiveblocksFlow`) to reflect changes in real-time
+- Rely on Liveblocks (`useLiveblocksFlow`) to reflect changes in real time
 - AI updates to nodes, edges, and presence should appear automatically
 
 4. Status display
@@ -39,7 +39,7 @@ in real time, and reflect AI-driven canvas updates through Liveblocks.
 
 Chat bubbles
 
-- User: green accent background (`bg-accent` or `bg-brand`), readable contrast text
+- User: green accent background (`#62C073`), readable contrast text
 - AI: dark background, light text
 
 Submit button
